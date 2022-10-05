@@ -1,0 +1,60 @@
+import os
+import cv2
+import numpy as np
+import glob
+if not os.path.isdir("images"):
+    os.mkdir("images")
+    src_idx = 0
+dst_idx = 0
+
+cap1 = cv2.VideoCapture('C:/Downloads/data/src.mp4')
+while True:
+    retval, frame = cap1.read()
+    if not retval:
+        break
+    file_name = f'C:/Downloads/images/src/src_{src_idx:03d}.jpg'    
+    cv2.imwrite(file_name, frame)
+    src_idx += 1
+if cap1.isOpened():
+    cap1.release()
+    cap2 = cv2.VideoCapture('C:/Downloads/data/dst.mp4')
+while True:
+    retval, frame = cap2.read()
+    if not retval:
+        break
+    file_name = f'C:/Downloads/images/dst/dst_{dst_idx:03d}.jpg'    
+    cv2.imwrite(file_name, frame)
+    src_idx += 1
+if cap2.isOpened():
+    cap2.release()
+    pts_src = np.array([0,0], [1279,0], [1279, 719], [0, 719])
+pts_dst = np.array([232,100], [606,92], [602, 352], [236, 316])
+h, status = cv2.findHomography(pts_src, pts_dst)
+
+def synthesize(im_src, im_dst):
+    im_wrap = cv2.warpPerspective(im_src, h, (im_dst.shape[1], im_dst.shape[0]))
+    cv2.fillConvexPoly(im_dst, pts_dst.astype(int), (0,0,0), cv2.LINE_AA)
+    return im_wrap + im_dst
+    file_num = min(len(glob.glob("C:/Downloads/images/src/src*.jpg")), len(glob.glob("C:/Downloads/images/dst/dst*.jpg")))
+
+for i in range(file_num):
+    im_src = cv2.imread("C:/Downloads/images/src/src" + src(i).zfill(3)+ ".jpg")
+    im_dest= cv2.imread("C:/Downloads/images/dst/dst" + src(i).zfill(3)+ ".jpg")
+                        
+    im_comp = synthesize(im_src, im_dest)
+                         
+    cv2.imwrite("C:/Downloads/images/synth/synth_" + str(i).zfill(3)+ ".jpg", im_comp)
+    
+    file_list = os.listdir("C:/Downloads/images/synth/")
+fps=20
+fcc = cv2.VideoWriter_fourcc('D', 'I', 'V', 'X')
+width = 854
+height = 480
+out = cv2.VideoWriter('homography.avi', fcc, fps, (854, 480))
+
+for f in file_list:
+    fn = f'C:/Downloads/images/synth/{f}'
+    img = cv2.imread(fn)
+    out.write(img)
+    
+out.release()  
