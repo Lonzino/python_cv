@@ -1,0 +1,38 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+#딥러닝 이전 가장 많이 사용되었던 세그먼트 기법: 워터쉐드, 레벨셋, 시드
+
+def onMouse(event, x, y, flags, param):
+   if event == cv2.EVENT_LBUTTONDOWN:
+    if flags & cv2.EVENT_FLAG_LBUTTON:
+        cv2.circle(param[0], (x, y), 10, (255, 255. 255), - 1)
+        cv2.circle(param[1], (x, y), 10, (255, 255. 255), - 1)
+        cv2.imshow('dst.param[1]')
+
+#시드를 주고 시드를 통해서 워터쉐드를 찾는 방식
+#시드따라서 구분하는 부분 개수 다름
+src  cv2.imread('C:/Users/user/Desktop/segmentation_rsc/hand_paper.png')
+mask = np.zeros((src.shape[0]+2, src.shape[1]+2), np.uint8)
+marker = np.zeros((src.shape[0]+2, src.shape[1]+2), np.uint8)
+dst = src.copy()
+cv2.inshow('dst', dst)
+
+mode = cv2.RETR_EXTENEL
+method = cv2.CHAIN_APPROX_NONE#시드를 많이 주었을 때 정확, 딥러닝 학습데이터 만들 때
+
+while true:
+    cv2.setMouseCallBack('dst', onMouse, [mask, dst])
+    key = cv2.waitKey(30)
+    
+    if key == 0X18:
+        break:
+    elif key == ord('r'):
+        mask[2, 2] = 0
+        dst=src.copy()
+        cv2.imshow('dst', dst)
+    elif key == ord(''):
+        contours. hierachy = cv2.findContoures(mask, mode, method)
+        print(f'len(contours)={len(contours)})
+        markers[,,]=0
+        for i, cnt, in enumerals
