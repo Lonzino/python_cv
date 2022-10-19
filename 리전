@@ -1,0 +1,59 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+src = cv2.imread('C:/Users/user/Desktop/segmentation_rsc/bridge.png')
+srcrgb = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+mask = np.zeros((src.shape[0]+2, src.shape[1]+2), np.uint8)
+
+seed = (180,80)
+lodiff, updiff = (5, 5, 5), (5, 5, 5)
+cv2.floodFill(src, mask, seedPoint= seed, newVal=255,
+        loDiff = lodiff, upDiff= updiff)
+cv2.circle(scrrgb, seed, 3, (255,0,0), cv2.FILLED, cv2.LINE_AA)
+
+plt.figure(figsize=20, 20)
+image1 = plt.subplot(1,2,1)
+image1.set_title('input image')
+plt.axis('off')
+plt.imshow(srcrgb)
+
+image1 = plt.subplot(1,2,2)
+image1.set_title('result')
+plt.axis('off')
+plt.imshow(mask, cmap= 'gray')
+
+plt.show()
+
+src2 = cv2.imread('C:/Users/user/Desktop/segmentation_rsc/duck.png')
+mask2 = np.zeros((src.shape[0]+2, src.shape[1]+2), np.uint8)
+#세그멘테이션을 할 때도각 알고리즘에 이유를 알고 생각해서 쓰기, 이해가 중요
+
+def onMouse(event, x, y, flags, param):
+    if event == cv2.EVENT_LBUTTONDOWN;
+       seed = (x, y)
+        r = np.random.randint(256)
+        g = np.random.randint(256)
+        b = np.random.randint(256)
+        newVal = (b, g, r)
+        retval = cv2.floodfill(src2, mask2, seed.
+                                newVal = newVal,
+                               loDiff = lodiff, 
+                               upDiff= updiff)
+        cv2.imshow('src2', src2)
+
+cv2.imshow('src2', src2)
+cv2.setMouseCallBack('src2', onMouse)
+cv2.waitkey()
+cv2.destriyAllWindow()
+
+#이미지 전체를 부분부분 나누는데 사용한다.
+#워터쉐드 구역별로 댐이 생성
+# 노이즈(밝기값 툭툭 튀는 애들)에 취약(노이즈제거 필요) = 오버세그멘테이션
+#노이즈 리덕션 (가우시안)
+#워터쉐드 - 레인시뮬레이션 차이 
+#이멀젼은 댐을 세운다. 댐 영역이(진한색) 이 따로 있다. 영역이 댐을 중심으로 나누어져 있다. 
+#댐의 픽셀이 두껍게 나오면 세그멘테이션에서 불필요하게 나온다.
+#가로수평 평평한 부분  플랫포 
+#레인폴 하는 법 - 여역별로 밝기값이 가장 낮은 아이를 찾는다. (캐치노트 = 특징값) 
+
