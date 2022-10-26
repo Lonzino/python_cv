@@ -1,0 +1,50 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+def drawFlow(img, flow, thresh=2, stride=8):  #플로우 그려주는 함수
+    h, w = img.shape[:2]
+    mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
+    flow2 = np.int32(flow)
+    for y in range(0,h,stride):
+        for x in range(0,w,stride):
+            dx, dy = flow2[y,x]
+            if mag[y,x] > thresh:
+                cv2.circle(img, (x, y), 2, (0,255,0), -1)
+                cv2.line(img, (x, y), (x+dx, y+dy),(255, 0, 0), 1)
+                
+                cap= cv2.VideoCapture('C:/Users/user/Downloads/data (2)/vtest.avi')
+if not cap.isOpened():
+    print('error')
+
+height, width = (int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                 int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)))
+
+hsv = np.zeros(shape=(height, width, 3), dtype=np.uint8)
+
+ret, frame = cap.read()
+imgP= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+TH = 2
+#AREA_TH = 100
+#mode = cv2.RETR_EXTERNAL
+#method = cv2.CHAIN_APPROX_SIMPLE
+params = dict(pyr_scale=5, levels =3, winsize=15, iterations=3, poly_n=5,
+              poly_sigma=1.2, flags=0)
+              
+              
+              t=0
+while True:
+    ret, frame = cap.read()
+    if not ret: break
+    t += 1
+    imgC = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    imgC = cv2.GaussianBlur(imgC, (5, 5), 0.5)
+    flow = cv2.calcOpticalFlowFarneback(imgP, imgC, None, **params)
+    drawFlow(frame, flow, TH)
+    cv2.imshow('frame', frame)
+    imgP = imgC.copy()
+    key = cv2.waitKey(20)
+    if key == 27:        break
+if cap.isOpened():    cap.release()
+cv2.destroyAllWindows()
