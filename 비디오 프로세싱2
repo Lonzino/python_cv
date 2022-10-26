@@ -1,0 +1,57 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+cap= cv2.VideoCapture('C:/Users/user/Downloads/data (2)/vtest.avi')
+if not cap.isOpened():
+    print('error')
+
+height, width = (int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                 int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)))
+                 
+bkg_gray = cv2.imread('C:/Users/user/Downloads/data (2)/avg_gray.png', cv2.IMREAD_GRAYSCALE)
+bkg_bgr =cv2.imread('C:/Users/user/Downloads/data (2)/avg_bgr.png')                 
+                 
+                 
+                 TH = 80
+AREA_TH = 100
+mode = cv2.RETR_EXTERNAL
+method = cv2.CHAIN_APPROX_SIMPLE
+
+t=0
+while True:
+    ret, frame = cap.read()
+    if not ret: break
+    t += 1
+    
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    diff_gray = cv2.absdiff(gray, bkg_gray)
+    
+    diff_bgr = cv2.absdiff(frame,bkg_bgr)
+    db, dg, dr = cv2.split(diff_bgr)
+    ret, bb = cv2.threshold(db, TH,255, cv2.THRESH_BINARY)
+    ret, bg = cv2.threshold(db, TH,255, cv2.THRESH_BINARY)
+    ret, br = cv2.threshold(db, TH,255, cv2.THRESH_BINARY)
+        
+    bimage = cv2.bitwise_or(bb, bg)
+    bimage = cv2.bitwise_or(bb, bimage)
+    bimage = cv2.erode(bimage, None, 5)
+    bimage = cv2.dilate(bimage, None, 5)
+    bimage = cv2.erode(bimage, None, 7)
+        
+    contours, hierachy = cv2.findContours(bimage, mode, method)
+    cv2.drawContours(frame, contours, -1, (255,0,0), 1)
+    for i, cnt in enumerate(contours):
+        area = cv2.contourArea(cnt)
+        if area > AREA_TH:
+                x,y,w,h = cv2.boundingRect(cnt)
+                cv2.rectangle(frame, (x,y), (x+w, y+h), (0,0,255), 2)
+                
+    cv2.imshow('frame', frame)
+    cv2.imshow('dst_gray', dst_gray)
+    cv2.imshow('dst_bgr', dst_bgr)
+            
+    key = cv2.waitKey(20)
+    if key == 27: break
+if cap.isOpened():    cap.release()
+cv2.destroyAllWindows
