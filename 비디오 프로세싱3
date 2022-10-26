@@ -1,0 +1,50 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+cap= cv2.VideoCapture('C:/Users/user/Downloads/data (2)/vtesr.avi')
+if not cap.isOpened():
+    print('error')
+
+height, width = (int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                 int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)))
+                 
+acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
+acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
+print(height, width)
+
+t=0
+while true:
+    ret, frame = cap.read()
+    if not ret: break
+    t+=1
+    blur =cv2.GaussianBlur(frame, (5,5), .0)
+    
+    if t<50:
+        cv2.accumulate(blur, acc_bgr)
+        continue
+    elif t ==50:
+        bkg_bgr = acc_bgr / t
+        
+    diff_bgr = np.uint8(cv2.absdiff(np.float32(blur), bkg_bgr))
+    db, dg, dr = cv2.split(diff_bgr)
+    ret, bb = cv2.threshold(db, TH,255, cv2.THRESH_BINARY)
+    ret, bg = cv2.threshold(db, TH,255, cv2.THRESH_BINARY)
+    ret, br = cv2.threshold(db, TH,255, cv2.THRESH_BINARY)
+        
+    bimage = cv2.bitwise_or(bb, bg)
+    bimage = cv2.bitwise_or(bb, bimage)
+    bimage = cv2.erode(bimage, None, 5)
+    bimage = cv2.dilate(bimage, None, 5)
+    bimage = cv2.erode(bimage, None, 7)
+    mask = bimage.copy()
+    
+    cv2.imshow('bimage', bimage)
+    contours, hierachy = cv2.findContours(bimage, mode, method)
+    cv2.drawContours(frame, contours, -1, (255,0,0), 1)
+        for i, cnt in enumerate(contours):
+            area = cv2.contourArea(cnt)
+            if area > AREA_TH:
+                x,y,w,h = cv2.boundingRect(cnt)
+                cv2.rectangle(frame, (x,y), (x+w, y+h), (0,0,255), 2)
+        
